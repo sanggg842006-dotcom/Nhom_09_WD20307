@@ -1,1 +1,6 @@
-<?php class Guide extends BaseModel {} ?>
+<?php
+require_once 'BaseModel.php';
+
+class Guide extends BaseModel {
+    protected $table = 'guides';
+}
