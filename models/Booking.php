@@ -53,4 +53,18 @@ class Booking extends BaseModel {
             'pages'    => max(1, (int)ceil($total / $perPage)),
         ];
     }
+    public function incBooked($scheduleId){
+    $sql = "UPDATE schedules SET booked_count = booked_count + 1 WHERE id = ?";
+    $st = self::$conn->prepare($sql);
+    $st->execute([$scheduleId]);
+}
+
+public function decBooked($scheduleId){
+    $sql = "UPDATE schedules 
+            SET booked_count = IF(booked_count>0, booked_count-1,0)
+            WHERE id = ?";
+    $st = self::$conn->prepare($sql);
+    $st->execute([$scheduleId]);
+}
+
 }

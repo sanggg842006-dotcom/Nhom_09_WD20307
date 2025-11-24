@@ -22,7 +22,6 @@ class ScheduleController
         return $f;
     }
 
-    // GET: index.php?c=Schedule&a=index
     public function index() {
         $model = new Schedule();
 
@@ -46,7 +45,6 @@ class ScheduleController
         include __DIR__ . '/../views/admin/schedule/index.php';
     }
 
-    // GET: create
     public function create() {
         $tourModel  = new Tour();
         $guideModel = new Guide();
@@ -70,43 +68,56 @@ class ScheduleController
         include __DIR__ . '/../views/admin/schedule/form.php';
     }
 
-    // POST: store
     public function store() {
-    $model = new Schedule();
+        $model = new Schedule();
 
-    $data = [
-        'tour_id'        => (int)($_POST['tour_id'] ?? 0),
-        'guide_id'       => ($_POST['guide_id'] ?? '') !== '' ? (int)$_POST['guide_id'] : null,
-        'start_date'     => $_POST['start_date'] ?? date('Y-m-d'),
+        $data = [
+            'tour_id'        => (int)($_POST['tour_id'] ?? 0),
+            'guide_id'       => (($_POST['guide_id'] ?? '') !== '') ? (int)$_POST['guide_id'] : null,
+            'start_date'     => $_POST['start_date'] ?? date('Y-m-d'),
+            'end_date'       => (($_POST['end_date'] ?? '') !== '') ? $_POST['end_date'] : null,
+            'meeting_point'  => trim($_POST['meeting_point'] ?? ''),
+            'capacity'       => (int)($_POST['capacity'] ?? 0),
+            'booked_count'   => (int)($_POST['booked_count'] ?? 0),
+            'price_override' => (($_POST['price_override'] ?? '') !== '') ? (float)$_POST['price_override'] : null,
+            'status'         => $_POST['status'] ?? 'open',
+            'note'           => trim($_POST['note'] ?? ''),
+        ];
 
-        // FIX ở đây
-        'end_date'       => (($_POST['end_date'] ?? '') !== '') ? $_POST['end_date'] : null,
+        if ($data['tour_id'] <= 0) {
+            $this->setFlash('danger', 'Vui lòng chọn tour.');
+            $this->redirect('index.php?c=Schedule&a=create');
+        }
 
-        'meeting_point'  => trim($_POST['meeting_point'] ?? ''),
-        'capacity'       => (int)($_POST['capacity'] ?? 0),
-        'booked_count'   => (int)($_POST['booked_count'] ?? 0),
-        'price_override' => ($_POST['price_override'] ?? '') !== '' ? (float)$_POST['price_override'] : null,
-        'status'         => $_POST['status'] ?? 'open',
-        'note'           => trim($_POST['note'] ?? ''),
-    ];
+        if ($data['capacity'] < 0 || $data['booked_count'] < 0) {
+            $this->setFlash('danger', 'Số chỗ / số đã đặt không hợp lệ.');
+            $this->redirect('index.php?c=Schedule&a=create');
+        }
 
-    if ($data['tour_id'] <= 0) {
-        $this->setFlash('danger', 'Vui lòng chọn tour.');
-        $this->redirect('index.php?c=Schedule&a=create');
+        // ✅ booked không được vượt capacity
+        if ($data['capacity'] > 0 && $data['booked_count'] > $data['capacity']) {
+            $this->setFlash('danger', 'Số đã đặt không được vượt quá số chỗ.');
+            $this->redirect('index.php?c=Schedule&a=create');
+        }
+
+        // ✅ end_date không được nhỏ hơn start_date
+        if (!empty($data['end_date']) && $data['end_date'] < $data['start_date']) {
+            $this->setFlash('danger', 'Ngày kết thúc không được nhỏ hơn ngày khởi hành.');
+            $this->redirect('index.php?c=Schedule&a=create');
+        }
+
+        // ✅ Auto-closed nếu full chỗ (chỉ khi status đang open/closed)
+        if (in_array($data['status'], ['open','closed'], true)
+            && $data['capacity'] > 0
+            && $data['booked_count'] >= $data['capacity']) {
+            $data['status'] = 'closed';
+        }
+
+        $model->create($data);
+        $this->setFlash('success', 'Tạo lịch khởi hành thành công.');
+        $this->redirect('index.php?c=Schedule&a=index');
     }
 
-    if ($data['capacity'] < 0 || $data['booked_count'] < 0) {
-        $this->setFlash('danger', 'Số chỗ / số đã đặt không hợp lệ.');
-        $this->redirect('index.php?c=Schedule&a=create');
-    }
-
-    $model->create($data);
-    $this->setFlash('success', 'Tạo lịch khởi hành thành công.');
-    $this->redirect('index.php?c=Schedule&a=index');
-}
-
-
-    // GET: edit&id=
     public function edit() {
         $id = (int)($_GET['id'] ?? 0);
         if ($id <= 0) $this->redirect('index.php?c=Schedule&a=index');
@@ -127,41 +138,59 @@ class ScheduleController
         include __DIR__ . '/../views/admin/schedule/form.php';
     }
 
-    // POST: update
-   public function update() {
-    $id = (int)($_POST['id'] ?? 0);
-    if ($id <= 0) $this->redirect('index.php?c=Schedule&a=index');
+    public function update() {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) $this->redirect('index.php?c=Schedule&a=index');
 
-    $model = new Schedule();
+        $model = new Schedule();
 
-    $data = [
-        'tour_id'        => (int)($_POST['tour_id'] ?? 0),
-        'guide_id'       => ($_POST['guide_id'] ?? '') !== '' ? (int)$_POST['guide_id'] : null,
-        'start_date'     => $_POST['start_date'] ?? date('Y-m-d'),
+        $data = [
+            'tour_id'        => (int)($_POST['tour_id'] ?? 0),
+            'guide_id'       => (($_POST['guide_id'] ?? '') !== '') ? (int)$_POST['guide_id'] : null,
+            'start_date'     => $_POST['start_date'] ?? date('Y-m-d'),
+            'end_date'       => (($_POST['end_date'] ?? '') !== '') ? $_POST['end_date'] : null,
+            'meeting_point'  => trim($_POST['meeting_point'] ?? ''),
+            'capacity'       => (int)($_POST['capacity'] ?? 0),
+            'booked_count'   => (int)($_POST['booked_count'] ?? 0),
+            'price_override' => (($_POST['price_override'] ?? '') !== '') ? (float)$_POST['price_override'] : null,
+            'status'         => $_POST['status'] ?? 'open',
+            'note'           => trim($_POST['note'] ?? ''),
+        ];
 
-        // FIX ở đây
-        'end_date'       => (($_POST['end_date'] ?? '') !== '') ? $_POST['end_date'] : null,
+        if ($data['tour_id'] <= 0) {
+            $this->setFlash('danger', 'Vui lòng chọn tour.');
+            $this->redirect('index.php?c=Schedule&a=edit&id='.$id);
+        }
 
-        'meeting_point'  => trim($_POST['meeting_point'] ?? ''),
-        'capacity'       => (int)($_POST['capacity'] ?? 0),
-        'booked_count'   => (int)($_POST['booked_count'] ?? 0),
-        'price_override' => ($_POST['price_override'] ?? '') !== '' ? (float)$_POST['price_override'] : null,
-        'status'         => $_POST['status'] ?? 'open',
-        'note'           => trim($_POST['note'] ?? ''),
-    ];
+        if ($data['capacity'] < 0 || $data['booked_count'] < 0) {
+            $this->setFlash('danger', 'Số chỗ / số đã đặt không hợp lệ.');
+            $this->redirect('index.php?c=Schedule&a=edit&id='.$id);
+        }
 
-    if ($data['tour_id'] <= 0) {
-        $this->setFlash('danger', 'Vui lòng chọn tour.');
-        $this->redirect('index.php?c=Schedule&a=edit&id='.$id);
+        // ✅ booked không được vượt capacity
+        if ($data['capacity'] > 0 && $data['booked_count'] > $data['capacity']) {
+            $this->setFlash('danger', 'Số đã đặt không được vượt quá số chỗ.');
+            $this->redirect('index.php?c=Schedule&a=edit&id='.$id);
+        }
+
+        // ✅ end_date không được nhỏ hơn start_date
+        if (!empty($data['end_date']) && $data['end_date'] < $data['start_date']) {
+            $this->setFlash('danger', 'Ngày kết thúc không được nhỏ hơn ngày khởi hành.');
+            $this->redirect('index.php?c=Schedule&a=edit&id='.$id);
+        }
+
+        // ✅ Auto-closed nếu full chỗ (không đè completed/cancelled)
+        if (in_array($data['status'], ['open','closed'], true)
+            && $data['capacity'] > 0
+            && $data['booked_count'] >= $data['capacity']) {
+            $data['status'] = 'closed';
+        }
+
+        $model->update($id, $data);
+        $this->setFlash('success', 'Cập nhật lịch khởi hành thành công.');
+        $this->redirect('index.php?c=Schedule&a=index');
     }
 
-    $model->update($id, $data);
-    $this->setFlash('success', 'Cập nhật lịch khởi hành thành công.');
-    $this->redirect('index.php?c=Schedule&a=index');
-}
-
-
-    // POST: destroy
     public function destroy() {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {

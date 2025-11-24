@@ -234,10 +234,11 @@ $currentAction     = $_GET['a'] ?? 'index';
                class="nav-link-main">
                 <i class="bi bi-people"></i> Quản lý khách hàng
             </a>
-            <a href="#"
-               class="nav-link-main">
-                <i class="bi bi-clipboard-check"></i> Điểm danh theo lịch trình
+            <a href="index.php?c=Attendance&a=index"
+            class="nav-link-main <?= isActive('Attendance', $currentController) ?>">
+            <i class="bi bi-clipboard-check"></i> Điểm danh theo lịch trình
             </a>
+
 
             <!-- Hệ thống -->
             <div class="sidebar-section-title">Hệ thống</div>

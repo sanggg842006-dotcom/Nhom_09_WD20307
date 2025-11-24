@@ -80,6 +80,25 @@ $statuses = [
         </thead>
         <tbody>
           <?php if (!empty($data['items'])): foreach ($data['items'] as $row): ?>
+            <?php
+              $cap    = (int)($row['capacity'] ?? 0);
+              $booked = (int)($row['booked_count'] ?? 0);
+              $st     = $row['status'] ?? 'open';
+
+              // ✅ FIX LOGIC: nếu full chỗ mà vẫn open => hiển thị closed
+              $stView = $st;
+              if ($cap > 0 && $booked >= $cap && $st === 'open') {
+                  $stView = 'closed';
+              }
+
+              $badge = match($stView){
+                'open' => 'success',
+                'closed' => 'secondary',
+                'completed' => 'primary',
+                'cancelled' => 'danger',
+                default => 'secondary'
+              };
+            ?>
             <tr>
               <td>#<?= (int)$row['id'] ?></td>
               <td><?= h($row['tour_name'] ?? ('Tour#'.$row['tour_id'])) ?></td>
@@ -87,20 +106,12 @@ $statuses = [
               <td><?= h($row['start_date']) ?></td>
               <td><?= h($row['end_date'] ?? '') ?></td>
               <td><?= h($row['meeting_point'] ?? '') ?></td>
-              <td><?= (int)($row['booked_count'] ?? 0) ?>/<?= (int)($row['capacity'] ?? 0) ?></td>
+              <td><?= $booked ?>/<?= $cap ?></td>
               <td><?= $row['price_override'] !== null ? number_format((float)$row['price_override']) : '-' ?></td>
               <td>
-                <?php
-                  $st = $row['status'] ?? 'open';
-                  $badge = match($st){
-                    'open' => 'success',
-                    'closed' => 'secondary',
-                    'completed' => 'primary',
-                    'cancelled' => 'danger',
-                    default => 'secondary'
-                  };
-                ?>
-                <span class="badge text-bg-<?= h($badge) ?>"><?= h($statuses[$st] ?? $st) ?></span>
+                <span class="badge text-bg-<?= h($badge) ?>">
+                  <?= h($statuses[$stView] ?? $stView) ?>
+                </span>
               </td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-primary"

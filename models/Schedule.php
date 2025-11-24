@@ -63,4 +63,50 @@ class Schedule extends BaseModel {
             'pages'   => max(1, (int)ceil($total / $perPage)),
         ];
     }
+    public function getAllWithTour() {
+    $sql = "
+        SELECT sc.*, t.name AS tour_name
+        FROM schedules sc
+        LEFT JOIN tours t ON t.id = sc.tour_id
+        ORDER BY sc.start_date DESC, sc.id DESC
+    ";
+    $stmt = self::$conn->query($sql);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function findWithTourGuide($id) {
+    $sql = "
+        SELECT sc.*, 
+               t.name AS tour_name,
+               g.name AS guide_name
+        FROM schedules sc
+        LEFT JOIN tours t ON t.id = sc.tour_id
+        LEFT JOIN guides g ON g.id = sc.guide_id
+        WHERE sc.id = ?
+        LIMIT 1
+    ";
+    $stmt = self::$conn->prepare($sql);
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+    public function getOpenSchedulesGroupedByTour() {
+    $sql = "
+        SELECT sc.id, sc.tour_id, sc.start_date, sc.end_date,
+               sc.capacity, sc.booked_count, sc.status
+        FROM schedules sc
+        WHERE sc.status = 'open'
+        ORDER BY sc.start_date ASC, sc.id ASC
+    ";
+    $stmt = self::$conn->query($sql);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $grouped = [];
+    foreach ($rows as $r) {
+        $tid = $r['tour_id'];
+        if (!isset($grouped[$tid])) $grouped[$tid] = [];
+        $grouped[$tid][] = $r;
+    }
+    return $grouped;
+}
+
 }
