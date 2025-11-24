@@ -25,11 +25,7 @@ ob_start();
                         <input type="text" name="duration" class="form-control" placeholder="Ví dụ: 3N2Đ">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Ngày khởi hành</label>
-                        <input type="date" name="start_date" class="form-control">
-                    </div>
-
+                 
                     <div class="mb-3">
                         <label class="form-label">Danh mục tour</label>
                         <select name="tour_type_id" class="form-select">

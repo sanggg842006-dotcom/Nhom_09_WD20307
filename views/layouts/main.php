@@ -213,14 +213,16 @@ $currentAction     = $_GET['a'] ?? 'index';
                class="nav-link-main <?= isActive('Supplier', $currentController) ?>">
                 <i class="bi bi-building"></i> Nhà cung cấp
             </a>
-            <a href="#"
-               class="nav-link-main">
+            <a href="index.php?c=Guide&a=index"
+            class="nav-link-main <?= isActive('Guide', $currentController) ?>">
                 <i class="bi bi-person-badge"></i> Hướng dẫn viên
             </a>
-            <a href="#"
-               class="nav-link-main">
+
+            <a href="index.php?c=Schedule&a=index"
+            class="nav-link-main <?= isActive('Schedule', $currentController) ?>">
                 <i class="bi bi-calendar-week"></i> Lịch khởi hành
             </a>
+
 
             <!-- Khách hàng & booking -->
             <div class="sidebar-section-title">Khách hàng & booking</div>
@@ -299,7 +301,7 @@ $currentAction     = $_GET['a'] ?? 'index';
         <!-- FOOTER -->
         <footer class="admin-footer d-flex justify-content-between align-items-center">
             <span>© <?= date('Y') ?> Tour Management System</span>
-            <span class="text-muted">Bài thi / đồ án – có thể mở rộng thêm</span>
+           
         </footer>
     </div>
 </div>

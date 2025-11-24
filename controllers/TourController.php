@@ -31,7 +31,7 @@ class TourController {
             'name'        => $_POST['name'],
             'price'       => $_POST['price'],
             'duration'    => $_POST['duration'],
-            'start_date'  => $_POST['start_date'],
+          
             'description' => $_POST['description'],
             'tour_type_id'=> $_POST['tour_type_id'],
             'supplier_id' => $_POST['supplier_id'],
@@ -60,7 +60,7 @@ class TourController {
             'name'        => $_POST['name'],
             'price'       => $_POST['price'],
             'duration'    => $_POST['duration'],
-            'start_date'  => $_POST['start_date'],
+           
             'description' => $_POST['description'],
             'tour_type_id'=> $_POST['tour_type_id'],
             'supplier_id' => $_POST['supplier_id'],

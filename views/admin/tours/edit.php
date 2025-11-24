@@ -30,11 +30,6 @@ ob_start();
                                value="<?= htmlspecialchars($tour['duration']) ?>">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Ngày khởi hành</label>
-                        <input type="date" name="start_date" class="form-control"
-                               value="<?= $tour['start_date'] ?>">
-                    </div>
 
                     <div class="mb-3">
                         <label class="form-label">Danh mục tour</label>

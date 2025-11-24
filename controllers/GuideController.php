@@ -1,65 +1,128 @@
 <?php
-class GuideController {
-    private $guideModel;
+require_once __DIR__ . '/../models/Guide.php';
 
-    public function __construct()
-    {
-        $this->guideModel = new Guide();
-    }
-
-    public function index()
-    {
-        $guides = $this->guideModel->all();
-        include __DIR__ . '/../views/admin/guides/index.php';
-    }
-
-    public function create()
-    {
-        include __DIR__ . '/../views/admin/guides/create.php';
-    }
-
-    public function store()
-    {
-        $data = [
-            'name'    => $_POST['name'] ?? '',
-            'phone'   => $_POST['phone'] ?? '',
-            'email'   => $_POST['email'] ?? '',
-            'address' => $_POST['address'] ?? '',
-        ];
-        $this->guideModel->create($data);
-        header('Location: index.php?c=Guide&a=index');
+class GuideController
+{
+    private function redirect($url) {
+        header("Location: {$url}");
         exit;
     }
 
-    public function edit()
-    {
-        $id = $_GET['id'] ?? 0;
-        $guide = $this->guideModel->find($id);
-        if (!$guide) {
-            die('Nhân sự không tồn tại');
+    private function setFlash($type, $msg) {
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $_SESSION['flash'] = ['type' => $type, 'msg' => $msg];
+    }
+
+    private function takeFlash() {
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $f = $_SESSION['flash'] ?? null;
+        unset($_SESSION['flash']);
+        return $f;
+    }
+
+    // GET /?c=Guide&a=index
+    public function index() {
+        $model = new Guide();
+
+        $page    = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 10;
+        $filters = [
+            'status' => $_GET['status'] ?? '',
+            'q'      => $_GET['q']      ?? '',
+        ];
+
+        $data = $model->paginate($page, $perPage, $filters);
+        $flash = $this->takeFlash();
+        $title = 'Quản lý Hướng dẫn viên';
+
+        include __DIR__ . '/../views/admin/guide/index.php';
+    }
+
+    // GET /?c=Guide&a=create
+    public function create() {
+        $guide = [
+            'name'      => '',
+            'phone'     => '',
+            'email'     => '',
+            'languages' => '',
+            'status'    => 'active',
+            'note'      => '',
+        ];
+        $title = 'Thêm Hướng dẫn viên';
+        include __DIR__ . '/../views/admin/guide/form.php';
+    }
+
+    // POST /?c=Guide&a=store
+    public function store() {
+        $model = new Guide();
+        $data = [
+            'name'      => trim($_POST['name'] ?? ''),
+            'phone'     => trim($_POST['phone'] ?? ''),
+            'email'     => trim($_POST['email'] ?? ''),
+            'languages' => trim($_POST['languages'] ?? ''),
+            'status'    => $_POST['status'] ?? 'active',
+            'note'      => trim($_POST['note'] ?? ''),
+        ];
+
+        if ($data['name'] === '' || ($data['email'] === '' && $data['phone'] === '')) {
+            $this->setFlash('danger', 'Vui lòng nhập tên và ít nhất một thông tin liên hệ (email hoặc điện thoại).');
+            $this->redirect('index.php?c=Guide&a=create');
         }
-        include __DIR__ . '/../views/admin/guides/edit.php';
+
+        $model->create($data);
+        $this->setFlash('success', 'Tạo hướng dẫn viên thành công.');
+        $this->redirect('index.php?c=Guide&a=index');
     }
 
-    public function update()
-    {
-        $id = $_POST['id'] ?? 0;
+    // GET /?c=Guide&a=edit&id=...
+    public function edit() {
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id <= 0) $this->redirect('index.php?c=Guide&a=index');
+
+        $model = new Guide();
+        $guide = $model->find($id);
+        if (!$guide) {
+            $this->setFlash('danger', 'Hướng dẫn viên không tồn tại.');
+            $this->redirect('index.php?c=Guide&a=index');
+        }
+
+        $title = 'Sửa Hướng dẫn viên';
+        include __DIR__ . '/../views/admin/guide/form.php';
+    }
+
+    // POST /?c=Guide&a=update
+    public function update() {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) $this->redirect('index.php?c=Guide&a=index');
+
+        $model = new Guide();
         $data = [
-            'name'    => $_POST['name'] ?? '',
-            'phone'   => $_POST['phone'] ?? '',
-            'email'   => $_POST['email'] ?? '',
-            'address' => $_POST['address'] ?? '',
+            'name'      => trim($_POST['name'] ?? ''),
+            'phone'     => trim($_POST['phone'] ?? ''),
+            'email'     => trim($_POST['email'] ?? ''),
+            'languages' => trim($_POST['languages'] ?? ''),
+            'status'    => $_POST['status'] ?? 'active',
+            'note'      => trim($_POST['note'] ?? ''),
         ];
-        $this->guideModel->update($id, $data);
-        header('Location: index.php?c=Guide&a=index');
-        exit;
+
+        if ($data['name'] === '' || ($data['email'] === '' && $data['phone'] === '')) {
+            $this->setFlash('danger', 'Vui lòng nhập tên và ít nhất một thông tin liên hệ (email hoặc điện thoại).');
+            $this->redirect('index.php?c=Guide&a=edit&id='.$id);
+        }
+
+        $model->update($id, $data);
+        $this->setFlash('success', 'Cập nhật hướng dẫn viên thành công.');
+        $this->redirect('index.php?c=Guide&a=index');
     }
 
-    public function delete()
-    {
-        $id = $_GET['id'] ?? 0;
-        $this->guideModel->delete($id);
-        header('Location: index.php?c=Guide&a=index');
-        exit;
+    // POST /?c=Guide&a=destroy
+    public function destroy() {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $model = new Guide();
+            $model->delete($id);
+            $this->setFlash('success', 'Xóa hướng dẫn viên thành công.');
+        }
+        $this->redirect('index.php?c=Guide&a=index');
     }
 }

@@ -19,7 +19,7 @@ ob_start();
                     <th>Tên tour</th>
                     <th>Giá</th>
                     <th>Thời lượng</th>
-                    <th>Ngày khởi hành</th>
+                   
                     <th>Danh mục</th>
                     <th>Nhà cung cấp</th>
                     <th>Trạng thái</th>
@@ -33,7 +33,7 @@ ob_start();
                         <td><?= htmlspecialchars($tour['name']) ?></td>
                         <td><?= number_format($tour['price']) ?> đ</td>
                         <td><?= htmlspecialchars($tour['duration']) ?></td>
-                        <td><?= $tour['start_date'] ?></td>
+                    
                         <td><?= $tour['tour_type_id'] ?></td>
                         <td><?= $tour['supplier_id'] ?></td>
                         <td>
