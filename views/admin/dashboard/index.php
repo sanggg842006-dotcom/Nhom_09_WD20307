@@ -2,6 +2,7 @@
 $title = 'Bảng điều khiển';
 ob_start();
 ?>  
+
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card border-0 shadow-sm h-100">
@@ -99,37 +100,77 @@ ob_start();
                         <thead class="table-light">
                             <tr>
                                 <th style="width:60px;">ID</th>
-                                <th>Tour ID</th>
-                                <th>Khách hàng ID</th>
+                                <th>Tour</th>
+                                <th>Khách hàng</th>
                                 <th>Ngày đặt</th>
                                 <th>Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($recentBookings as $b): ?>
+                        <?php foreach ($recentBookings as $b): ?>
                             <tr>
-                                <td><?= $b['id'] ?></td>
-                                <td><?= $b['tour_id'] ?></td>
-                                <td><?= $b['customer_id'] ?></td>
-                                <td><?= $b['booking_date'] ?></td>
+                                <td>#<?= $b['id'] ?></td>
+
                                 <td>
-                                    <?php if ($b['status'] == 'pending'): ?>
-                                        <span class="badge text-bg-warning">Chờ xác nhận</span>
-                                    <?php elseif ($b['status'] == 'confirmed'): ?>
-                                        <span class="badge text-bg-success">Đã xác nhận</span>
-                                    <?php elseif ($b['status'] == 'cancelled'): ?>
-                                        <span class="badge text-bg-danger">Đã hủy</span>
-                                    <?php else: ?>
-                                        <span class="badge text-bg-secondary">Hoàn thành</span>
+                                    <strong><?= htmlspecialchars($b['tour_name']) ?></strong><br>
+                                    <?php if (!empty($b['start_date'])): ?>
+                                        <small class="text-muted">
+                                            Khởi hành: <?= $b['start_date'] ?>
+                                        </small>
                                     <?php endif; ?>
                                 </td>
+
+                                <td>
+                                    <?= htmlspecialchars($b['customer_name']) ?><br>
+                                    <?php if (!empty($b['customer_phone'])): ?>
+                                        <small class="text-muted"><?= $b['customer_phone'] ?></small>
+                                    <?php endif; ?>
+                                </td>
+
+                                <td><?= $b['booking_date'] ?></td>
+
+                                <td>
+                                    <?php
+                                    $status = $b['status'];
+                                    $label  = '';
+                                    $class  = '';
+
+                                    switch ($status) {
+                                        case 'pending':
+                                            $label = 'Chờ xác nhận';
+                                            $class = 'warning';
+                                            break;
+                                        case 'confirmed':
+                                            $label = 'Đã xác nhận';
+                                            $class = 'success';
+                                            break;
+                                        case 'paid':
+                                            $label = 'Đã thanh toán';
+                                            $class = 'primary';
+                                            break;
+                                        case 'cancelled':
+                                            $label = 'Đã hủy';
+                                            $class = 'danger';
+                                            break;
+                                        default:
+                                            $label = 'Hoàn thành';
+                                            $class = 'secondary';
+                                            break;
+                                    }
+                                    ?>
+                                    <span class="badge text-bg-<?= $class ?>">
+                                        <?= $label ?>
+                                    </span>
+                                </td>
                             </tr>
-                            <?php endforeach; ?>
+                        <?php endforeach; ?>
                         </tbody>
                     </table>
                 <?php else: ?>
                     <!-- Thông báo nếu không có booking nào -->
-                    <div class="alert alert-light border small mb-0">Chưa có booking nào.</div>
+                    <div class="alert alert-light border small mb-0">
+                        Chưa có booking nào.
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
